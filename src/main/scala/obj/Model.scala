@@ -8,6 +8,7 @@ import main.scala.helper.Constants
 import main.java.commons.cli.CommandLine
 import main.scala.connector.File2LDADataset
 import main.scala.connector.File2Model
+import main.scala.connector.File2KS
 
 /**
  * Lop bieu dien MODEL cua LDA
@@ -39,13 +40,13 @@ import main.scala.connector.File2Model
  * @param nwsum nwsum[j]: total number of words assigned to topic j, size K
  * @param ndsum ndsum[i]: total number of words in document i, size M
  */
-class Model(var tassignSuffix: String, var thetaSuffix: String, var phiSuffix: String, var othersSuffix: String, var twordsSuffix: String, var wordMapFile: String, var trainlogFile: String, var dir: String, var dfile: String, var modelName: String, var modelStatus: Int, var data: LDADataset, var M: Int, var V: Int, var K: Int, var alpha: Double, var beta: Double, var niters: Int, var liter: Int, var savestep: Int, var twords: Int, var theta: Array[Array[Double]], var phi: Array[Array[Double]], var z: Array[Array[Int]], var nw: Array[Array[Int]], var nd: Array[Array[Int]], var nwsum: Array[Int], var ndsum: Array[Int], var p: Array[Double]) {
+class Model(var tassignSuffix: String, var thetaSuffix: String, var phiSuffix: String, var othersSuffix: String, var twordsSuffix: String, var wordMapFile: String, var trainlogFile: String, var dir: String, var dfile: String, var ksfile: String, var modelName: String, var modelStatus: Int, var data: LDADataset, var ks: KnowledgeSource, var M: Int, var V: Int, var K: Int, var alpha: Double, var beta: Double, var niters: Int, var liter: Int, var savestep: Int, var twords: Int, var theta: Array[Array[Double]], var phi: Array[Array[Double]], var z: Array[Array[Int]], var nw: Array[Array[Int]], var nd: Array[Array[Int]], var nwsum: Array[Int], var ndsum: Array[Int], var p: Array[Double]) {
 
   /**
    * Set default values for variables
    */
   def this() = {
-    this(".tassign", ".theta", ".phi", ".others", ".twords", "wordmap.txt", "trainlog.txt", "./", "trndocs.dat", "model-final", Constants.MODEL_STATUS_UNKNOWN, null, 0, 0, 100, 50.0 / 100, 0.1, 2000, 0, 100, 10, null, null, null, null, null, null, null, null)
+    this(".tassign", ".theta", ".phi", ".others", ".twords", "wordmap.txt", "trainlog.txt", "./", "trndocs.dat", "ks.dat", "model-final", Constants.MODEL_STATUS_UNKNOWN, null, null, 0, 0, 100, 50.0 / 100, 0.1, 2000, 0, 100, 10, null, null, null, null, null, null, null, null)
   }
 
   //---------------------------------------------------------------
@@ -76,6 +77,7 @@ class Model(var tassignSuffix: String, var thetaSuffix: String, var phiSuffix: S
       dir = dir.substring(0, dir.length - 1)
 
     dfile = params.datafile
+    ksfile = params.ksfile
     twords = params.twords
     wordMapFile = params.wordMapFileName
 
@@ -92,6 +94,7 @@ class Model(var tassignSuffix: String, var thetaSuffix: String, var phiSuffix: S
     p = new Array[Double](K)
 
     data = File2LDADataset.readDataSet(dir + File.separator + dfile)
+    ks = File2KS.readKnowledgeSrc(Constants.lamda, data.localDict, dir + File.separator + ksfile)
     if (data == null) {
       println("Fail to read training data!\n")
       return false

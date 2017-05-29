@@ -50,6 +50,12 @@ object LDACmdOption {
   options.addOption(datafile)
   //@Option(name = "-dfile", usage = "Specify data file")
   //var dfile = ""
+  
+  
+  val ksfile = new Option("ks", "ksfile", true, "Specify knowledge source file")
+  ksfile.setRequired(false)
+  ksfile.setArgName("file")  
+  options.addOption(ksfile)
 
   val modelname = new Option("m", "modelname", true, "Specify the model name")
   modelname.setRequired(false)

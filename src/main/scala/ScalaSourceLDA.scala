@@ -24,7 +24,7 @@ object ScalaSourceLDA {
         var params = new Parameter
         params.getParams(cmd)
         if (!params.checkRequirement) {
-          println("ERROR!!! Phai nhap day du cac tham so: alpha, beta, directory, datafile, ntopics, niters")
+          println("ERROR!!! Phai nhap day du cac tham so: alpha, beta, directory, datafile, ksfile, ntopics, niters")
           LDACmdOption.showHelp()
           return
         } else {
@@ -50,11 +50,18 @@ object ScalaSourceLDA {
             }
           } else { // est or estc
             // default: est
-            var estimate = new Estimator
+            /*var estimate = new Estimator
             println("Preparing...")
             estimate.init(cmd.hasOption("estcon"), params)
             println("Estimating...")
-            estimate.estimate(params.savestep)
+            estimate.estimate(params.savestep)*/
+            
+            println("SOURCE LDA")
+            var srcEstimate = new SrcEstimator
+            println("SourceLDA preparing...")
+            srcEstimate.init(params)
+            println("SourceLDA estimating...")
+            srcEstimate.estimate(params.savestep)
           }
 
           //~~~~~~~~~~~ Timer ~~~~~~~~~~~
@@ -68,7 +75,7 @@ object ScalaSourceLDA {
       }
     } catch {
       case moe: MissingOptionException => {
-        println("ERROR!!! Phai nhap day du cac tham so: alpha, beta, directory, datafile, ntopics, niters")
+        println("ERROR!!! Phai nhap day du cac tham so: alpha, beta, directory, datafile, ksfile, ntopics, niters")
         LDACmdOption.showHelp()
       }
       case mae: MissingArgumentException => {

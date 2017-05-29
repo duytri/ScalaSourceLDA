@@ -6,6 +6,7 @@ import main.scala.obj.Dictionary
 import java.io.File
 import java.io.BufferedReader
 import java.io.FileReader
+import scala.io.Source
 
 object File2LDADataset {
   //---------------------------------------------------------------
@@ -19,15 +20,18 @@ object File2LDADataset {
   def readDataSet(filename: String): LDADataset = {
     val file = new File(filename)
     val reader = new BufferedReader(new FileReader(file))
-
+    val lines = new ArrayBuffer[String]
     var line = reader.readLine()
-    val M = line.toInt
+    while (line != null) {
+      lines.append(line)
+      line = reader.readLine()
+    }
+    val M = lines.length
     var data = new LDADataset(M)
 
     for (i <- 0 until M) {
-      data.setDoc(reader.readLine(), i)
+      data.setDoc(lines(i), i)
     }
-
     reader.close()
     data
   }
@@ -41,49 +45,17 @@ object File2LDADataset {
   def readDataSet(filename: String, dict: Dictionary): LDADataset = {
     val file = new File(filename)
     val reader = new BufferedReader(new FileReader(file))
-
+    val lines = new ArrayBuffer[String]
     var line = reader.readLine()
-    val M = line.toInt
+    while (line != null) {
+      lines.append(line)
+      line = reader.readLine()
+    }
+    val M = lines.length
     var data = new LDADataset(M, dict)
 
     for (i <- 0 until M) {
-      data.setDoc(reader.readLine(), i)
-    }
-
-    reader.close()
-    data
-  }
-
-  /**
-   *  read a dataset from a stream, create new dictionary
-   *  @return dataset if success and null otherwise
-   */
-  def readDataSet(reader: BufferedReader): LDADataset = {
-    //read number of document
-    var line = reader.readLine()
-    val M = line.toInt
-    var data = new LDADataset(M)
-
-    for (i <- 0 until M) {
-      data.setDoc(reader.readLine(), i)
-    }
-    reader.close()
-    data
-  }
-
-  /**
-   * read a dataset from a stream with respect to a specified dictionary
-   * @param reader stream from which we read dataset
-   * @param dict the dictionary
-   * @return dataset if success and null otherwise
-   */
-  def readDataSet(reader: BufferedReader, dict: Dictionary): LDADataset = {
-    var line = reader.readLine()
-    val M = line.toInt
-    var data = new LDADataset(M, dict)
-
-    for (i <- 0 until M) {
-      data.setDoc(reader.readLine(), i)
+      data.setDoc(lines(i), i)
     }
     reader.close()
     data

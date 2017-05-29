@@ -11,6 +11,7 @@ class Parameter {
   var niters: Int = -1
   var directory: String = "@"
   var datafile: String = "@"
+  var ksfile: String = "@"
   var modelname: String = "@"
   var savestep: Int = -1
   var twords: Int = -1
@@ -23,6 +24,7 @@ class Parameter {
     K = if (cmd.hasOption("ntopics")) cmd.getOptionValue("ntopics").toInt else -1
     niters = if (cmd.hasOption("niters")) cmd.getOptionValue("niters").toInt else -1
     datafile = if (cmd.hasOption("datafile")) cmd.getOptionValue("datafile") else "@"
+    ksfile = if (cmd.hasOption("ksfile")) cmd.getOptionValue("ksfile") else "@"
     modelname = if (cmd.hasOption("modelname")) cmd.getOptionValue("modelname") else "@"
     savestep = if (cmd.hasOption("savestep")) cmd.getOptionValue("savestep").toInt else -1
     twords = if (cmd.hasOption("twords")) cmd.getOptionValue("twords").toInt else -1
@@ -39,7 +41,7 @@ class Parameter {
   }
 
   def checkRequirement(): Boolean = {
-    if (alpha < 0.0d || beta < 0.0d || K < 0 || niters < 0 || directory.compareTo("@") == 0 || datafile.compareTo("@") == 0)
+    if (alpha < 0.0d || beta < 0.0d || K < 0 || niters < 0 || directory.compareTo("@") == 0 || datafile.compareTo("@") == 0|| ksfile.compareTo("@") == 0)
       false
     else true
   }

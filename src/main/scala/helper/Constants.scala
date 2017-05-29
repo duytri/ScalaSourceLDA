@@ -7,4 +7,5 @@ object Constants {
   val MODEL_STATUS_EST: Int = 1
   val MODEL_STATUS_ESTC: Int = 2
   val MODEL_STATUS_INF: Int = 3
+  val lamda = 2.0
 }
