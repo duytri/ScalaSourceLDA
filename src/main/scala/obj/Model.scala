@@ -42,6 +42,7 @@ import main.scala.connector.File2KS
  */
 class Model(var tassignSuffix: String, var thetaSuffix: String, var phiSuffix: String, var othersSuffix: String, var twordsSuffix: String, var wordMapFile: String, var trainlogFile: String, var dir: String, var dfile: String, var ksfile: String, var modelName: String, var modelStatus: Int, var data: LDADataset, var ks: KnowledgeSource, var M: Int, var V: Int, var K: Int, var alpha: Double, var beta: Double, var niters: Int, var liter: Int, var savestep: Int, var twords: Int, var theta: Array[Array[Double]], var phi: Array[Array[Double]], var z: Array[Array[Int]], var nw: Array[Array[Int]], var nd: Array[Array[Int]], var nwsum: Array[Int], var ndsum: Array[Int], var p: Array[Double]) {
 
+  var T: Int = 0 // total number of topics
   /**
    * Set default values for variables
    */
@@ -62,6 +63,7 @@ class Model(var tassignSuffix: String, var thetaSuffix: String, var phiSuffix: S
 
     modelName = params.modelname
     K = params.K
+    T = K
 
     alpha = params.alpha
     if (alpha < 0.0)
@@ -91,8 +93,6 @@ class Model(var tassignSuffix: String, var thetaSuffix: String, var phiSuffix: S
     if (!init(params))
       return false
 
-    p = new Array[Double](K)
-
     data = File2LDADataset.readDataSet(dir + File.separator + dfile)
     ks = File2KS.readKnowledgeSrc(Constants.lamda, data.localDict, dir + File.separator + ksfile)
     if (data == null) {
@@ -101,38 +101,21 @@ class Model(var tassignSuffix: String, var thetaSuffix: String, var phiSuffix: S
     }
 
     //+ allocate memory and assign values for variables		
+    T = K + ks.K
     M = data.M
     V = data.V
     dir = params.directory
     savestep = params.savestep
 
+    p = new Array[Double](T)
     // K: from command line or default value
     // alpha, beta: from command line or default values
     // niters, savestep: from command line or default values
 
-    nw = Array.ofDim[Int](V, K)
-    for (w <- 0 until V) {
-      for (k <- 0 until K) {
-        nw(w)(k) = 0
-      }
-    }
-
-    nd = Array.ofDim[Int](M, K)
-    for (m <- 0 until M) {
-      for (k <- 0 until K) {
-        nd(m)(k) = 0
-      }
-    }
-
-    nwsum = Array.ofDim[Int](K)
-    for (k <- 0 until K) {
-      nwsum(k) = 0
-    }
-
+    nw = Array.ofDim[Int](V, T)
+    nd = Array.ofDim[Int](M, T)
+    nwsum = Array.ofDim[Int](T)
     ndsum = Array.ofDim[Int](M)
-    for (m <- 0 until M) {
-      ndsum(m) = 0
-    }
 
     z = Array.ofDim[Array[Int]](M)
     for (m <- 0 until M) {
@@ -142,7 +125,7 @@ class Model(var tassignSuffix: String, var thetaSuffix: String, var phiSuffix: S
       //initilize for z
       z(m) = Array.ofDim[Int](N)
       for (n <- 0 until N) {
-        val topic = Math.floor(Math.random() * K).toInt
+        val topic = Math.floor(Math.random() * T).toInt
         z(m)(n) = topic
 
         // number of instances of word assigned to topic j
@@ -156,8 +139,8 @@ class Model(var tassignSuffix: String, var thetaSuffix: String, var phiSuffix: S
       ndsum(m) = N
     }
 
-    theta = Array.ofDim[Double](M, K)
-    phi = Array.ofDim[Double](K, V)
+    theta = Array.ofDim[Double](M, T)
+    phi = Array.ofDim[Double](T, V)
 
     return true
   }
@@ -170,11 +153,13 @@ class Model(var tassignSuffix: String, var thetaSuffix: String, var phiSuffix: S
     if (!init(params))
       return false
 
+    ks = trnModel.ks
     K = trnModel.K
+    T = trnModel.T
     alpha = trnModel.alpha
     beta = trnModel.beta;
 
-    p = new Array[Double](K)
+    p = new Array[Double](T)
     //println("K:" + K);
 
     data = newData
@@ -191,29 +176,10 @@ class Model(var tassignSuffix: String, var thetaSuffix: String, var phiSuffix: S
     // alpha, beta: from command line or default values
     // niters, savestep: from command line or default values
 
-    nw = Array.ofDim[Int](V, K)
-    for (w <- 0 until V) {
-      for (k <- 0 until K) {
-        nw(w)(k) = 0
-      }
-    }
-
-    nd = Array.ofDim[Int](M, K)
-    for (m <- 0 until M) {
-      for (k <- 0 until K) {
-        nd(m)(k) = 0
-      }
-    }
-
-    nwsum = Array.ofDim[Int](K)
-    for (k <- 0 until K) {
-      nwsum(k) = 0
-    }
-
+    nw = Array.ofDim[Int](V, T)
+    nd = Array.ofDim[Int](M, T)
+    nwsum = Array.ofDim[Int](T)
     ndsum = Array.ofDim[Int](M)
-    for (m <- 0 until M) {
-      ndsum(m) = 0
-    }
 
     z = new Array[Array[Int]](M)
     for (m <- 0 until M) {
@@ -223,7 +189,7 @@ class Model(var tassignSuffix: String, var thetaSuffix: String, var phiSuffix: S
       //initilize for z
       z(m) = new Array[Int](N)
       for (n <- 0 until N) {
-        val topic = Math.floor(Math.random() * K).toInt
+        val topic = Math.floor(Math.random() * T).toInt
         z(m)(n) = topic
 
         // number of instances of word assigned to topic j
@@ -237,8 +203,8 @@ class Model(var tassignSuffix: String, var thetaSuffix: String, var phiSuffix: S
       ndsum(m) = N
     }
 
-    theta = Array.ofDim[Double](M, K)
-    phi = Array.ofDim[Double](K, V)
+    theta = Array.ofDim[Double](M, T)
+    phi = Array.ofDim[Double](T, V)
 
     return true
   }
@@ -267,15 +233,13 @@ class Model(var tassignSuffix: String, var thetaSuffix: String, var phiSuffix: S
     if (!init(params))
       return false
 
-    p = new Array[Double](K)
-
     dir = params.directory
     modelName = params.modelname
     wordMapFile = params.wordMapFileName
     savestep = params.savestep
     // load model, i.e., read z and trndata
     val f2m = new File2Model
-    if (!f2m.loadModel(dir, modelName + "-final", othersSuffix, tassignSuffix, wordMapFile)) {
+    if (!f2m.loadModel(dir, "src-" + modelName + "-final", othersSuffix, tassignSuffix, wordMapFile)) {
       System.out.println("Fail to load word-topic assignment file of the model!\n");
       return false
     } else {
@@ -287,6 +251,8 @@ class Model(var tassignSuffix: String, var thetaSuffix: String, var phiSuffix: S
       z = f2m.getZ()
       liter = f2m.getLIter()
     }
+    
+    p = new Array[Double](T)
 
     System.out.println("Model loaded:")
     System.out.println("\talpha:" + alpha)

@@ -13,7 +13,6 @@ import main.scala.helper.Utils
 
 object ScalaSourceLDA {
   def main(args: Array[String]): Unit = {
-    println("Current directory: " + System.getProperty("user.dir"))
     println("#################### Source LDA ####################")
     try {
       var cmd = LDACmdOption.getArguments(args)
@@ -62,6 +61,7 @@ object ScalaSourceLDA {
             srcEstimate.init(params)
             println("SourceLDA estimating...")
             srcEstimate.estimate(params.savestep)
+            println(s"Completed! Perplexity of this model: ${srcEstimate.computePerplexity}")
           }
 
           //~~~~~~~~~~~ Timer ~~~~~~~~~~~

@@ -19,7 +19,7 @@ class SrcEstimator {
 
     if (!trnModel.initNewModel(params))
       false
-    Dictionary2File.writeWordMap(params.directory + File.separator + "output" + File.separator + params.wordMapFileName, trnModel.data.localDict.word2id)
+    Dictionary2File.writeWordMap(params.directory + File.separator + "output" + File.separator + "src-" + params.wordMapFileName, trnModel.data.localDict.word2id)
 
     true
   }
@@ -48,7 +48,7 @@ class SrcEstimator {
           println("Saving the model at iteration " + iter + "...")
           computeTheta()
           computePhi()
-          Model2File.saveModel("Src" + trnModel.modelName + "-" + Conversion.zeroPad(iter, 5), trnModel)
+          Model2File.saveModel("src-" + trnModel.modelName + "-" + Conversion.zeroPad(iter, 5), trnModel)
         }
       }
     } // end iterations	
@@ -58,7 +58,7 @@ class SrcEstimator {
     computeTheta()
     computePhi()
     //trnModel.liter -= 1
-    Model2File.saveModel("Src" + trnModel.modelName + "-final", trnModel)
+    Model2File.saveModel("src-" + trnModel.modelName + "-final", trnModel)
   }
 
   /**
@@ -82,14 +82,13 @@ class SrcEstimator {
 
     //do multinominal sampling via cumulative method
     for (k <- 0 until trnModel.K) {
-      /*println("m: " + m + " n: " + n + " k: " + k)
-      println(trnModel.nw(w)(k))
-      println(trnModel.ks.deltaPow(k)(n))
-      println(trnModel.nwsum(k) + trnModel.ks.deltaPowSum(k))
-      println(trnModel.nd(m)(k) + trnModel.alpha)
-      println(trnModel.ndsum(m) + Kalpha)*/
-
-      trnModel.p(k) = (trnModel.nw(w)(k) + trnModel.ks.deltaPow(k)(n)) / (trnModel.nwsum(k) + trnModel.ks.deltaPowSum(k)) *
+      trnModel.p(k) = (trnModel.nw(w)(k) + trnModel.beta) / (trnModel.nwsum(k) + Vbeta) *
+        (trnModel.nd(m)(k) + trnModel.alpha) / (trnModel.ndsum(m) + Kalpha)
+    }
+    for (k <- trnModel.K until trnModel.T) {
+      val b = k - trnModel.K
+      val deltaPowBW = if (trnModel.ks.deltaPow(b).contains(w)) trnModel.ks.deltaPow(b)(w) else 1
+      trnModel.p(k) = (trnModel.nw(w)(k) + deltaPowBW) / (trnModel.nwsum(k) + trnModel.ks.deltaPowSum(b)) *
         (trnModel.nd(m)(k) + trnModel.alpha) / (trnModel.ndsum(m) + Kalpha)
     }
 
@@ -147,5 +146,32 @@ class SrcEstimator {
         trnModel.phi(k)(w) = (trnModel.nw(w)(k) + trnModel.beta) / (trnModel.nwsum(k) + trnModel.V * trnModel.beta)
       }
     }
+    for (k <- trnModel.K until trnModel.T) {
+      for (w <- 0 until trnModel.V) {
+        val b = k - trnModel.K
+        val deltaPowBW = if (trnModel.ks.deltaPow(b).length > w) trnModel.ks.deltaPow(b)(w) else 1
+        trnModel.phi(k)(w) = (trnModel.nw(w)(k) + deltaPowBW) / (trnModel.nwsum(k) + trnModel.ks.deltaPowSum(b))
+      }
+    }
+  }
+
+  def computePerplexity(): Double = {
+    var totalWords = 0d
+    var docSum = 0d
+    for (m <- 0 until trnModel.M) {
+      val nw = trnModel.data.docs(m).length
+      totalWords += nw
+      var wordSum = 0d
+      for (n <- 0 until nw) {
+        var topicSum = 0d
+        val w = trnModel.data.docs(m).words(n)
+        for (k <- 0 until trnModel.K) {
+          topicSum += trnModel.theta(m)(k) * trnModel.phi(k)(w)
+        }
+        wordSum += math.log(topicSum)
+      }
+      docSum += wordSum
+    }
+    math.exp(-1 * docSum / totalWords) // perplexity
   }
 }

@@ -2,7 +2,7 @@ package main.scala.obj
 
 import scala.collection.mutable.ArrayBuffer
 
-class KnowledgeSource(var knowledge: Array[(String, Array[(String, Int)])], var delta: Array[Array[(Int, Int)]], var deltaPow: Array[Array[Double]], var deltaPowSum: Array[Double]) {
+class KnowledgeSource(var knowledge: Array[(String, Array[(String, Int)])], var K: Int, var delta: Array[Array[(Int, Int)]], var deltaPow: Array[Array[Double]], var deltaPowSum: Array[Double]) {
 
   def initDelta(dict: Dictionary): Unit = {
     delta = new Array[Array[(Int, Int)]](knowledge.length)
@@ -26,7 +26,7 @@ class KnowledgeSource(var knowledge: Array[(String, Array[(String, Int)])], var 
       var rowBuff = new ArrayBuffer[Double]
       var sumBuff = 0.0
       for (word <- 0 until deltaTopic.length) {
-        rowBuff.append( math.pow(deltaTopic(word), lamda))
+        rowBuff.append(math.pow(deltaTopic(word), lamda))
         sumBuff += rowBuff(word)
       }
       deltaPow(topic) = rowBuff.toArray
@@ -35,7 +35,7 @@ class KnowledgeSource(var knowledge: Array[(String, Array[(String, Int)])], var 
   }
 
   def this(lamda: Double, dict: Dictionary, knowledge: Array[(String, Array[(String, Int)])]) = {
-    this(knowledge, null, null, null)
+    this(knowledge, knowledge.length, null, null, null)
     initDelta(dict)
     initDeltaPow(lamda)
   }
@@ -62,7 +62,7 @@ class KnowledgeSource(var knowledge: Array[(String, Array[(String, Int)])], var 
   }
 
   def getNumberOfTopic(): Int = {
-    knowledge.length
+    K
   }
 
   /*def getDeltaPow(jTopic: Int, iWord: Int): Double = {
