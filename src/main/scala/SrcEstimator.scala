@@ -78,7 +78,7 @@ class SrcEstimator {
     trnModel.ndsum(m) -= 1
 
     val Vbeta = trnModel.V * trnModel.beta
-    val Kalpha = trnModel.K * trnModel.alpha
+    val Kalpha = trnModel.T * trnModel.alpha
 
     //do multinominal sampling via cumulative method
     for (k <- 0 until trnModel.K) {
@@ -93,18 +93,18 @@ class SrcEstimator {
     }
 
     // cumulate multinomial parameters
-    for (k <- 1 until trnModel.K) {
+    for (k <- 1 until trnModel.T) {
       trnModel.p(k) += trnModel.p(k - 1)
     }
 
     // scaled sample because of unnormalized p[]
-    val scale = Math.random() * trnModel.p(trnModel.K - 1)
+    val scale = Math.random() * trnModel.p(trnModel.T - 1)
 
     //sample topic w.r.t distribution p
     topic = 0
     if (trnModel.p(0) <= scale) {
       var low = 0
-      var high = trnModel.K - 1
+      var high = trnModel.T - 1
       breakable {
         while (low <= high) {
           if (low == high - 1) {
@@ -134,8 +134,8 @@ class SrcEstimator {
 
   def computeTheta(): Unit = {
     for (m <- 0 until trnModel.M) {
-      for (k <- 0 until trnModel.K) {
-        trnModel.theta(m)(k) = (trnModel.nd(m)(k) + trnModel.alpha) / (trnModel.ndsum(m) + trnModel.K * trnModel.alpha)
+      for (k <- 0 until trnModel.T) {
+        trnModel.theta(m)(k) = (trnModel.nd(m)(k) + trnModel.alpha) / (trnModel.ndsum(m) + trnModel.T * trnModel.alpha)
       }
     }
   }
@@ -165,7 +165,7 @@ class SrcEstimator {
       for (n <- 0 until nw) {
         var topicSum = 0d
         val w = trnModel.data.docs(m).words(n)
-        for (k <- 0 until trnModel.K) {
+        for (k <- 0 until trnModel.T) {
           topicSum += trnModel.theta(m)(k) * trnModel.phi(k)(w)
         }
         wordSum += math.log(topicSum)
