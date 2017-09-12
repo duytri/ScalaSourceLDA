@@ -112,20 +112,20 @@ object Model2File {
       return false
     }
 
-    if (!saveModelOthers(model.dir + File.separator + "output" + File.separator + modelName + model.othersSuffix, model.alpha, model.beta, model.K, model.M, model.V, model.liter)) {
+    if (!saveModelOthers(model.dir + File.separator + "output" + File.separator + modelName + model.othersSuffix, model.alpha, model.beta, model.T, model.M, model.V, model.liter)) {
       return false
     }
 
-    if (!saveModelTheta(model.dir + File.separator + "output" + File.separator + modelName + model.thetaSuffix, model.theta, model.M, model.K)) {
+    if (!saveModelTheta(model.dir + File.separator + "output" + File.separator + modelName + model.thetaSuffix, model.theta, model.M, model.T)) {
       return false
     }
 
-    if (!saveModelPhi(model.dir + File.separator + "output" + File.separator + modelName + model.phiSuffix, model.phi, model.K, model.V)) {
+    if (!saveModelPhi(model.dir + File.separator + "output" + File.separator + modelName + model.phiSuffix, model.phi, model.T, model.V)) {
       return false
     }
 
     if (model.twords > 0) {
-      if (!saveModelTwords(model.dir + File.separator + "output" + File.separator + modelName + model.twordsSuffix, model.twords, model.K, model.V, model.phi, model.data))
+      if (!saveModelTwords(model.dir + File.separator + "output" + File.separator + modelName + model.twordsSuffix, model.twords, model.T, model.V, model.phi, model.data))
         return false
     }
     return true
